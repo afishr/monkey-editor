@@ -22,6 +22,7 @@
 #define CTRL_KEY(k) ((k) & 0x1f)
 #define MONKEY_VERSION "0.0.1"
 #define TAB_STOP 4
+#define QUIT_TIMES 3
 
 enum editorKey
 {
@@ -593,6 +594,8 @@ void editorMoveCursor(int key)
 
 void editorProcessKeypress()
 {
+	static int quit_times = QUIT_TIMES;
+
 	int c = editorReadKey();
 
 	switch (c)
@@ -606,6 +609,12 @@ void editorProcessKeypress()
 		break;
 
 	case CTRL_KEY('q'):
+		if (E.dirty && quit_times > 0) {
+			editorSetStatusMessage("WARNING! Unsaved changes. Press Ctrl-Q %d more times to quit.", quit_times);
+			quit_times--;
+			return;
+		}
+
 		write(STDOUT_FILENO, "\x1b[2J", 4);
 		write(STDOUT_FILENO, "\x1b[H", 3);
 
@@ -661,6 +670,8 @@ void editorProcessKeypress()
 		editorInsertChar(c);
 		break;
 	}
+
+	quit_times = QUIT_TIMES;
 }
 
 /*** init ***/
